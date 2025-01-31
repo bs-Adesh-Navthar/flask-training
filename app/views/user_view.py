@@ -164,7 +164,6 @@ class UserView(View):
 
     #for creating a new user
     @staticmethod
-    @api_time_logger
     @token_required
     def create_user(current_user=None):
         data = request.get_json(force=True)
