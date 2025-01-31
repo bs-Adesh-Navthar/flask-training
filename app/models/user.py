@@ -23,7 +23,7 @@ class User(Base):
     country_code = db.Column(db.String, nullable=True)
     pin = db.Column(db.String, nullable=True)
     auth_token = db.Column(db.String, nullable=True)
-    is_admin = db.Column(db.Text,default=False)
+    is_admin = db.Column(db.Boolean,default=False)
     last_login_at = db.Column(db.DateTime)
     address = db.Column(db.Text)
     zip_code = db.Column(db.String)

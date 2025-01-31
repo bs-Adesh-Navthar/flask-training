@@ -11,6 +11,7 @@ from app.helpers.constants import HttpStatusCode
 from app.helpers.constants import ResponseMessageKeys
 from app.helpers.decorators import api_time_logger
 from app.helpers.decorators import token_required
+# from app.helpers.decorators import is_super_admin
 from app.helpers.utility import field_type_validator
 from app.helpers.utility import get_pagination_meta
 from app.helpers.utility import required_validator
@@ -164,7 +165,9 @@ class UserView(View):
 
     #for creating a new user
     @staticmethod
-    @token_required
+    @api_time_logger
+    # @token_required
+    # @is_super_admin
     def create_user(current_user=None):
         data = request.get_json(force=True)
         field_types = {'first_name':str,'email': str, 'phone': str,'pin':str}
@@ -209,17 +212,17 @@ class UserView(View):
             db.session.commit()
 
             data = {
-            'email_to': primary_email,
-            'subject': EmailSubject.WELCOME_TO_PROJECT.value,
-            'template': 'emails/welcome.html',
-            'email_type': EmailTypes.INVITE.value,
-            'org_id': None,
-            'email_data': {
-                'email': primary_email,
-                'first_name': first_name,
-                'phone':primary_phone,
-                'pin': pin
-            }
+                'email_to': primary_email,
+                'subject': EmailSubject.WELCOME_TO_PROJECT.value,
+                'template': 'emails/welcome.html',
+                'email_type': EmailTypes.INVITE.value,
+                'org_id': None,
+                'email_data': {
+                    'email': primary_email,
+                    'first_name': first_name,
+                    'phone':primary_phone,
+                    'pin':pin
+                }
             }
             send_mail_q.enqueue(email_worker.EmailWorker.send,
                                 data, job_timeout=config_data['RQ_JOB_TIMEOUT'])
