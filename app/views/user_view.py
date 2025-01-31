@@ -2,7 +2,7 @@
 from datetime import datetime
 from datetime import timedelta
 from typing import Any
-
+from app import send_mail_q
 from app import config_data
 from app import db
 from app import limiter
@@ -20,6 +20,11 @@ from flask import request
 from flask.views import View
 import jwt
 from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash
+
+from app.helpers.constants import EmailSubject,EmailTypes
+from workers import email_worker
+
 
 
 class UserView(View):
@@ -40,7 +45,6 @@ class UserView(View):
             'email': user.primary_email,
             'created_at': user.created_at,
             'updated_at': user.updated_at,
-
             'name': '{} {}'.format(user.first_name, user.last_name) if user.last_name else user.first_name.title(),
             'phone': user.primary_phone,
             'country_code': user.country_code,
@@ -155,3 +159,72 @@ class UserView(View):
             return send_json_response(http_status=HttpStatusCode.OK.value, response_status=False,
                                       message_key=ResponseMessageKeys.LOGIN_FAILED.value,
                                       data=None, error=None)
+
+
+
+    #for creating a new user
+    @staticmethod
+    @api_time_logger
+    @token_required
+    def create_user(current_user=None):
+        data = request.get_json(force=True)
+        field_types = {'first_name':str,'email': str, 'phone': str,'pin':str}
+        required_fields = ['first_name','email', 'phone', 'pin']
+
+        post_data = field_type_validator(
+            request_data=data, field_types=field_types)
+        
+        if post_data['is_error']:
+            return send_json_response(http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                      message_key=ResponseMessageKeys.ENTER_CORRECT_INPUT.value,
+                                      data=None, error=post_data['data'])
+        is_valid = required_validator(request_data=data, required_fields=required_fields)
+        if is_valid['is_error']:
+            return send_json_response(http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                      message_key=ResponseMessageKeys.ENTER_CORRECT_INPUT.value, data=None,
+                                      error=is_valid['data'])
+        first_name = data.get('first_name')
+        primary_email = data.get('email')
+        primary_phone = data.get('phone')
+        pin=data.get('pin')
+        hashed_pin=generate_password_hash(pin,method='sha256')
+
+        user = User.get_by_email(email=primary_email)
+
+        if user!=None:
+            #Already exists
+            return send_json_response(http_status=str(HttpStatusCode.OK),
+                           response_status=True,
+                           message_key=ResponseMessageKeys.USER_ALREADY_EXISTS.value.format(primary_email),
+                           data=data, 
+                           error="AttributeError occurred while processing the request")
+
+        else:
+            #Add new user
+            
+            add_user_details = User(first_name=first_name,
+                                    primary_email=primary_email,
+                                    primary_phone=primary_phone,
+                                    pin=hashed_pin)
+            db.session.add(add_user_details)
+            db.session.commit()
+
+            data = {
+            'email_to': primary_email,
+            'subject': EmailSubject.WELCOME_TO_PROJECT.value,
+            'template': 'emails/welcome.html',
+            'email_type': EmailTypes.INVITE.value,
+            'org_id': None,
+            'email_data': {
+                'email': primary_email,
+                'first_name': first_name,
+                'phone':primary_phone
+            }
+            }
+            send_mail_q.enqueue(email_worker.EmailWorker.send,
+                                data, job_timeout=config_data['RQ_JOB_TIMEOUT'])
+    
+            return send_json_response(http_status=HttpStatusCode.OK.value, response_status=True,
+                                        message_key=ResponseMessageKeys.USER_CREATED.value.format(first_name),
+                                        data=data, error=None)
+
