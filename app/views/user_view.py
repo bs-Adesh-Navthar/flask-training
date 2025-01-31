@@ -217,7 +217,8 @@ class UserView(View):
             'email_data': {
                 'email': primary_email,
                 'first_name': first_name,
-                'phone':primary_phone
+                'phone':primary_phone,
+                'pin': pin
             }
             }
             send_mail_q.enqueue(email_worker.EmailWorker.send,

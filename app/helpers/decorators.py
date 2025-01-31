@@ -42,23 +42,27 @@ def token_required(f: Callable) -> Callable:  # type: ignore  # noqa: C901
             # decoding the payload to fetch the stored details
             data = jwt.decode(jwt=token, key=config_data.get(
                 'SECRET_KEY'), algorithms=['HS256'])
-            current_user = User.query \
-                .filter_by(id=data['id']) \
-                .first()
+            
+            current_user = User.query.filter_by(id=data['id']).first()
+            is_admin= User.query.filter_by(id=data['id']).with_entities(User.is_admin).first()
+            if is_admin[0]==True:
+                if current_user:
+                    if current_user.auth_token != token:
+                        return send_json_response(http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
+                                                message_key=ResponseMessageKeys.INVALID_TOKEN.value,
+                                                data=None,
+                                                error=None)
 
-            if current_user:
-                if current_user.auth_token != token:
+                else:
                     return send_json_response(http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
-                                              message_key=ResponseMessageKeys.INVALID_TOKEN.value,
-                                              data=None,
-                                              error=None)
-
+                                            message_key=ResponseMessageKeys.USER_NOT_EXIST.value,
+                                            data=None,
+                                            error=None)
             else:
                 return send_json_response(http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
-                                          message_key=ResponseMessageKeys.USER_NOT_EXIST.value,
-                                          data=None,
-                                          error=None)
-
+                                            message_key=ResponseMessageKeys.INVALID_TOKEN.value,
+                                            data=None,
+                                            error=None)
         except Exception as e:
             logger.info('we got exception {0}'.format(e))
             return send_json_response(http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
