@@ -1,0 +1,140 @@
+2025-01-31 16:42:09,514: ERROR {audit_log.py:95} -> Failed to Get Client IP - > 'REMOTE_ADDR'
+2025-01-31 17:09:48,282: INFO {decorators.py:62} -> we got exception Signature verification failed
+2025-01-31 17:15:31,483: ERROR {__init__.py:142} -> Exception Stack Trace
+2025-01-31 17:15:31,483: ERROR {__init__.py:143} -> Unable to register blueprints: EOL while scanning string literal (user_view.py, line 224).
+	Traceback is:
+	> Error at function register_blueprints
+	  At: /home/bs/Documents/flask-training/app/__init__.py:129
+	  Source: from app.views import v1_blueprints
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/__init__.py:4
+	  Source: from app.views.user_view import UserView
+	> Exception: EOL while scanning string literal (user_view.py, line 224)
+
+2025-01-31 17:15:31,484: ERROR {__init__.py:144} -> =========END=========
+2025-01-31 17:15:37,278: ERROR {__init__.py:142} -> Exception Stack Trace
+2025-01-31 17:15:37,279: ERROR {__init__.py:143} -> Unable to register blueprints: invalid syntax (user_view.py, line 225).
+	Traceback is:
+	> Error at function register_blueprints
+	  At: /home/bs/Documents/flask-training/app/__init__.py:129
+	  Source: from app.views import v1_blueprints
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/__init__.py:4
+	  Source: from app.views.user_view import UserView
+	> Exception: invalid syntax (user_view.py, line 225)
+
+2025-01-31 17:15:37,279: ERROR {__init__.py:144} -> =========END=========
+2025-01-31 18:31:20,190: ERROR {__init__.py:142} -> Exception Stack Trace
+2025-01-31 18:31:20,190: ERROR {__init__.py:143} -> Unable to register blueprints: No module named 'hashids'.
+	Traceback is:
+	> Error at function register_blueprints
+	  At: /home/bs/Documents/flask-training/app/__init__.py:129
+	  Source: from app.views import v1_blueprints
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/__init__.py:2
+	  Source: from app.views.common_view import AuditView
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/common_view.py:10
+	  Source: from app.helpers.decorators import api_time_logger
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/decorators.py:10
+	  Source: from app.helpers.utility import send_json_response
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/utility.py:14
+	  Source: from hashids import Hashids
+	> Exception: No module named 'hashids'
+
+2025-01-31 18:31:20,190: ERROR {__init__.py:144} -> =========END=========
+2025-01-31 18:31:22,262: ERROR {__init__.py:142} -> Exception Stack Trace
+2025-01-31 18:31:22,262: ERROR {__init__.py:143} -> Unable to register blueprints: No module named 'hashids'.
+	Traceback is:
+	> Error at function register_blueprints
+	  At: /home/bs/Documents/flask-training/app/__init__.py:129
+	  Source: from app.views import v1_blueprints
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/__init__.py:2
+	  Source: from app.views.common_view import AuditView
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/common_view.py:10
+	  Source: from app.helpers.decorators import api_time_logger
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/decorators.py:10
+	  Source: from app.helpers.utility import send_json_response
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/utility.py:14
+	  Source: from hashids import Hashids
+	> Exception: No module named 'hashids'
+
+2025-01-31 18:31:22,262: ERROR {__init__.py:144} -> =========END=========
+2025-01-31 18:31:35,207: ERROR {__init__.py:142} -> Exception Stack Trace
+2025-01-31 18:31:35,207: ERROR {__init__.py:143} -> Unable to register blueprints: No module named 'hashids'.
+	Traceback is:
+	> Error at function register_blueprints
+	  At: /home/bs/Documents/flask-training/app/__init__.py:129
+	  Source: from app.views import v1_blueprints
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/__init__.py:2
+	  Source: from app.views.common_view import AuditView
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/common_view.py:10
+	  Source: from app.helpers.decorators import api_time_logger
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/decorators.py:10
+	  Source: from app.helpers.utility import send_json_response
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/utility.py:14
+	  Source: from hashids import Hashids
+	> Exception: No module named 'hashids'
+
+2025-01-31 18:31:35,207: ERROR {__init__.py:144} -> =========END=========
+2025-01-31 18:31:40,515: ERROR {__init__.py:142} -> Exception Stack Trace
+2025-01-31 18:31:40,516: ERROR {__init__.py:143} -> Unable to register blueprints: No module named 'hashids'.
+	Traceback is:
+	> Error at function register_blueprints
+	  At: /home/bs/Documents/flask-training/app/__init__.py:129
+	  Source: from app.views import v1_blueprints
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/__init__.py:2
+	  Source: from app.views.common_view import AuditView
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/common_view.py:10
+	  Source: from app.helpers.decorators import api_time_logger
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/decorators.py:10
+	  Source: from app.helpers.utility import send_json_response
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/utility.py:14
+	  Source: from hashids import Hashids
+	> Exception: No module named 'hashids'
+
+2025-01-31 18:31:40,516: ERROR {__init__.py:144} -> =========END=========
+2025-01-31 18:36:58,724: ERROR {__init__.py:142} -> Exception Stack Trace
+2025-01-31 18:36:58,724: ERROR {__init__.py:143} -> Unable to register blueprints: No module named 'hashids'.
+	Traceback is:
+	> Error at function register_blueprints
+	  At: /home/bs/Documents/flask-training/app/__init__.py:129
+	  Source: from app.views import v1_blueprints
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/__init__.py:2
+	  Source: from app.views.common_view import AuditView
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/views/common_view.py:10
+	  Source: from app.helpers.decorators import api_time_logger
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/decorators.py:10
+	  Source: from app.helpers.utility import send_json_response
+	> Error at function <module>
+	  At: /home/bs/Documents/flask-training/app/helpers/utility.py:14
+	  Source: from hashids import Hashids
+	> Exception: No module named 'hashids'
+
+2025-01-31 18:36:58,724: ERROR {__init__.py:144} -> =========END=========
+2025-01-31 18:49:24,184: ERROR {audit_log.py:95} -> Failed to Get Client IP - > 'REMOTE_ADDR'
+2025-01-31 18:59:04,008: INFO {email_worker.py:20} -> sent mail
+2025-01-31 18:59:07,809: INFO {mail.py:31} -> Mail sent successfully : None
+2025-01-31 18:59:44,618: INFO {email_worker.py:20} -> sent mail
+2025-01-31 18:59:47,658: INFO {mail.py:31} -> Mail sent successfully : None
+2025-01-31 19:05:38,100: INFO {email_worker.py:20} -> sent mail
+2025-01-31 19:05:41,459: INFO {mail.py:31} -> Mail sent successfully : None
+2025-01-31 19:09:26,086: INFO {email_worker.py:20} -> sent mail
+2025-01-31 19:09:29,367: INFO {mail.py:31} -> Mail sent successfully : None

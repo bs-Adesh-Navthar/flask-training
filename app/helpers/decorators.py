@@ -89,20 +89,20 @@ def api_time_logger(method: Callable) -> Callable:
         return response
     return wrapper
 
-# def is_super_admin(func):
-#     @wraps(func)
-#     def check_is_super_admin(*args,**kwargs):
-#         super_admin=False
-#         token = request.headers['x-access-token']
-#         data = jwt.decode(jwt=token, key=config_data.get(
-#             'SECRET_KEY'), algorithms=['HS256'])
-#         is_admin= User.query.filter_by(id=data['id']).with_entities(User.is_admin).first()
-#         if is_admin[0]==True:
-#             super_admin=True
-#             return super_admin
-#         else:
-#             return super_admin
+def is_super_admin(func):
+    @wraps(func)
+    def check_is_super_admin(*args,**kwargs):
+        super_admin=False
+        token = request.headers['x-access-token']
+        data = jwt.decode(jwt=token, key=config_data.get(
+            'SECRET_KEY'), algorithms=['HS256'])
+        is_admin= User.query.filter_by(id=data['id']).with_entities(User.is_admin).first()
+        if is_admin[0]==True:
+            super_admin=True
+            return super_admin
+        else:
+            return super_admin
     
-#     return func
+    return func
         
         

@@ -11,7 +11,7 @@ from app.helpers.constants import HttpStatusCode
 from app.helpers.constants import ResponseMessageKeys
 from app.helpers.decorators import api_time_logger
 from app.helpers.decorators import token_required
-# from app.helpers.decorators import is_super_admin
+from app.helpers.decorators import is_super_admin
 from app.helpers.utility import field_type_validator
 from app.helpers.utility import get_pagination_meta
 from app.helpers.utility import required_validator
@@ -166,8 +166,8 @@ class UserView(View):
     #for creating a new user
     @staticmethod
     @api_time_logger
-    # @token_required
-    # @is_super_admin
+    @token_required
+    @is_super_admin
     def create_user(current_user=None):
         data = request.get_json(force=True)
         field_types = {'first_name':str,'email': str, 'phone': str,'pin':str}
