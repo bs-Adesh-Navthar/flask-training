@@ -30,7 +30,8 @@ def create_user():
         add_user_details = User(first_name=config_data['ADMIN']['NAME'],
                                 primary_email=config_data['ADMIN']['PRIMARY_EMAIL'],
                                 primary_phone=config_data['ADMIN']['PRIMARY_PHONE'],
-                                pin=generate_password_hash(config_data['ADMIN']['PIN'], method='sha256'))
+                                pin=generate_password_hash(config_data['ADMIN']['PIN'], method='sha256'),
+                                is_admin=True)
         db.session.add(add_user_details)
         db.session.commit()
 

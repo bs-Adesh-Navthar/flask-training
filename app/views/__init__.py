@@ -24,7 +24,8 @@ def after_blueprint(response):
     # Uncomment above line while debugging to see API response time in logger file.
     return response
 
-
+v1_blueprints.add_url_rule(
+    '/user/create_user', view_func=UserView.create_user, methods=['POST'])
 v1_blueprints.add_url_rule(
     '/user/auth', view_func=UserView.login, methods=['POST'])
 v1_blueprints.add_url_rule(

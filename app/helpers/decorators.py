@@ -42,23 +42,22 @@ def token_required(f: Callable) -> Callable:  # type: ignore  # noqa: C901
             # decoding the payload to fetch the stored details
             data = jwt.decode(jwt=token, key=config_data.get(
                 'SECRET_KEY'), algorithms=['HS256'])
-            current_user = User.query \
-                .filter_by(id=data['id']) \
-                .first()
-
+            
+            current_user = User.query.filter_by(id=data['id']).first()
+            
             if current_user:
                 if current_user.auth_token != token:
                     return send_json_response(http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
-                                              message_key=ResponseMessageKeys.INVALID_TOKEN.value,
-                                              data=None,
-                                              error=None)
+                                            message_key=ResponseMessageKeys.INVALID_TOKEN.value,
+                                            data=None,
+                                            error=None)
 
             else:
                 return send_json_response(http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
-                                          message_key=ResponseMessageKeys.USER_NOT_EXIST.value,
-                                          data=None,
-                                          error=None)
-
+                                        message_key=ResponseMessageKeys.USER_NOT_EXIST.value,
+                                        data=None,
+                                            error=None)
+            
         except Exception as e:
             logger.info('we got exception {0}'.format(e))
             return send_json_response(http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
@@ -89,3 +88,21 @@ def api_time_logger(method: Callable) -> Callable:
         g.time_log = round(end - start, 5)  # type: ignore  # noqa: FKA100
         return response
     return wrapper
+
+def is_super_admin(func):
+    @wraps(func)
+    def check_is_super_admin(*args,**kwargs):
+        super_admin=False
+        token = request.headers['x-access-token']
+        data = jwt.decode(jwt=token, key=config_data.get(
+            'SECRET_KEY'), algorithms=['HS256'])
+        is_admin= User.query.filter_by(id=data['id']).with_entities(User.is_admin).first()
+        if is_admin[0]==True:
+            super_admin=True
+            return super_admin
+        else:
+            return super_admin
+    
+    return func
+        
+        
