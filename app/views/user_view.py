@@ -18,6 +18,7 @@ from app.helpers.utility import required_validator
 from app.helpers.utility import send_json_response
 from app.models.user import User
 from flask import request
+# from app.models.user import get_all_user_detail
 from flask.views import View
 import jwt
 from werkzeug.security import check_password_hash
@@ -25,6 +26,7 @@ from werkzeug.security import generate_password_hash
 
 from app.helpers.constants import EmailSubject,EmailTypes
 from workers import email_worker
+import uuid
 
 
 
@@ -207,7 +209,8 @@ class UserView(View):
             add_user_details = User(first_name=first_name,
                                     primary_email=primary_email,
                                     primary_phone=primary_phone,
-                                    pin=hashed_pin)
+                                    pin=hashed_pin,
+                                    uuid = str(uuid.uuid4()))
             db.session.add(add_user_details)
             db.session.commit()
 
@@ -230,4 +233,20 @@ class UserView(View):
             return send_json_response(http_status=HttpStatusCode.OK.value, response_status=True,
                                         message_key=ResponseMessageKeys.USER_CREATED.value.format(first_name),
                                         data=data, error=None)
+
+    # all user list 
+    @token_required
+    @is_super_admin
+    def all_user_list(current_user=None):
+        user_list= User.get_all_user_detail()
+        return send_json_response(http_status=HttpStatusCode.OK.value,response_status=True,
+                                message_key=ResponseMessageKeys.ALL_USERS.value,data=user_list,error=None)
+    
+    # User data by UUID
+    @token_required
+    @is_super_admin
+    def user_by_uuid(current_user=None):
+        # user_list= User.get_all_user_detail()
+        query = db.session.query(User).filter_by(uuid=user_uuid).all()
+        print(query)
 

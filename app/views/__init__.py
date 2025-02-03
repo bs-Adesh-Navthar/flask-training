@@ -25,6 +25,10 @@ def after_blueprint(response):
     return response
 
 v1_blueprints.add_url_rule(
+    '/user/all_user_list', view_func=UserView.all_user_list, methods=['GET'])
+v1_blueprints.add_url_rule(
+    '/user/user_by_uuid', view_func=UserView.user_by_uuid, methods=['GET'])
+v1_blueprints.add_url_rule(
     '/user/create_user', view_func=UserView.create_user, methods=['POST'])
 v1_blueprints.add_url_rule(
     '/user/auth', view_func=UserView.login, methods=['POST'])

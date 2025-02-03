@@ -66,6 +66,7 @@ class ResponseMessageKeys(enum.Enum):
     EMAIL_DETAILS_NOT_FOUND = 'Entered Email ID is not registered with us.'
     USER_CREATED = 'User created successfully'
     USER_ALREADY_EXISTS = 'Email already registered.'
+    ALL_USERS = "Fetched all users."
 
 
 SupportedFileTypes = {  # Contains all the supported file types.

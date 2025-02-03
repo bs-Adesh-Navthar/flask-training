@@ -13,6 +13,7 @@ from flask_migrate import MigrateCommand
 from flask_script import Manager
 from werkzeug.security import generate_password_hash
 from workers import email_worker
+import uuid
 
 migrate = Migrate(app=app, db=db)
 # keeps track of all the commands and handles how they are called from the command line
@@ -31,7 +32,8 @@ def create_user():
                                 primary_email=config_data['ADMIN']['PRIMARY_EMAIL'],
                                 primary_phone=config_data['ADMIN']['PRIMARY_PHONE'],
                                 pin=generate_password_hash(config_data['ADMIN']['PIN'], method='sha256'),
-                                is_admin=True)
+                                is_admin=True,
+                                uuid=str(uuid.uuid4()))
         db.session.add(add_user_details)
         db.session.commit()
 
