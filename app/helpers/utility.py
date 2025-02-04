@@ -210,3 +210,24 @@ def get_pagination_meta(current_page: int, page_size: int, total_items: int) -> 
         'next_page': next_page,
         'previous_page': previous_page
     }
+
+
+def generate_pin():
+    uppercase = string.ascii_uppercase
+    lowercase = string.ascii_lowercase
+    digits = string.digits
+    special_characters = string.punctuation
+
+    pin = [
+        random.choice(uppercase),
+        random.choice(lowercase),
+        random.choice(digits),
+        random.choice(special_characters)
+        ]
+    
+    all_characters = uppercase + lowercase + digits + special_characters
+    pin += random.choices(all_characters, k=4) 
+
+    random.shuffle(pin)
+    
+    return ''.join(pin)

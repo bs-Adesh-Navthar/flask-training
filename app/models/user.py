@@ -50,7 +50,7 @@ class User(Base):
     def get_all_user_detail() -> dict:
         """Return all records with basic details from user table."""
         query = db.session.query(User.id, User.first_name, User.last_name, User.primary_email,  # type: ignore  # noqa: FKA100
-                                  User.primary_phone, User.country_code, User.address ).all()
+                                User.uuid,User.primary_phone, User.country_code, User.address).all()
         return {r.id: r._asdict() for r in query}
 
     @classmethod

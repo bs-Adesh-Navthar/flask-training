@@ -16,9 +16,10 @@ from app.helpers.utility import field_type_validator
 from app.helpers.utility import get_pagination_meta
 from app.helpers.utility import required_validator
 from app.helpers.utility import send_json_response
+from app.helpers.utility import generate_pin
+
 from app.models.user import User
 from flask import request
-# from app.models.user import get_all_user_detail
 from flask.views import View
 import jwt
 from werkzeug.security import check_password_hash
@@ -27,8 +28,9 @@ from werkzeug.security import generate_password_hash
 from app.helpers.constants import EmailSubject,EmailTypes
 from workers import email_worker
 import uuid
-
-
+import pandas as pd
+import os
+from app.__init__ import app
 
 class UserView(View):
     """Contains all user related functions"""
@@ -245,8 +247,135 @@ class UserView(View):
     # User data by UUID
     @token_required
     @is_super_admin
-    def user_by_uuid(current_user=None):
-        # user_list= User.get_all_user_detail()
-        query = db.session.query(User).filter_by(uuid=user_uuid).all()
-        print(query)
+    def user_by_uuid(current_user=None, user_uuid=None):
+        user_uuid=str(user_uuid)
+        if user_uuid:
+            try:
+                user = User.query.filter_by(uuid=user_uuid).first()
 
+                if user:
+                    user_data = {
+                        "id": user.id,
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                        "address":user.address,
+                        "email": user.primary_email,
+                        "phone":user.primary_phone,
+                        "uuid": user.uuid
+                    }
+                    return send_json_response(http_status= HttpStatusCode.OK.value,response_status= True,
+                                            message_key=ResponseMessageKeys.SUCCESS.value,
+                                            data = user_data,error = None)
+                else:
+                    return send_json_response(
+                        http_status = HttpStatusCode.NOT_FOUND.value,
+                        response_status = False,message_key = ResponseMessageKeys.USER_NOT_EXIST.value,
+                        data = None,error = "User not found")
+
+            except ValueError:
+                return send_json_response(http_status = HttpStatusCode.BAD_REQUEST.value,
+                    response_status = False,message_key = ResponseMessageKeys.USER_NOT_EXIST.value,
+                    data = None,error = "Invalid UUID format")
+
+        else:
+            return send_json_response(http_status = HttpStatusCode.BAD_REQUEST.value,
+                    response_status = False,
+                    data =None,error = "Invalid UUID format")
+        
+
+    # insert bulk users from .csv file
+    @token_required
+    @is_super_admin
+    def create_users_form_csv(current_user=None):
+        extensions = ["csv","xlsx"]
+        file = request.files['file']
+        file_name = file.filename
+        file_split = file_name.lower().split(".")
+
+        if file_split[-1] in extensions:
+            try:
+                # for .csv file 
+                if file_split[-1]=="csv" and file:
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'],file_name)
+                    file.save(filepath)
+                    df = pd.read_csv(filepath)
+                    data = df.to_dict(orient='records')
+
+                    for item in data:
+                        random_pin = str(generate_pin())
+                        user = User(
+                            first_name=item['first_name'],
+                            last_name=item['last_name'],
+                            primary_email=item['email'],
+                            primary_phone=str(item['phone']),
+                            pin=generate_password_hash(random_pin,method="sha256"),
+                            uuid=str(uuid.uuid4())
+                            )       
+                        
+                        db.session.add(user)
+
+                        data = {
+                                'email_to': item['email'],
+                                'subject': EmailSubject.WELCOME_TO_PROJECT.value,
+                                'template': 'emails/welcome.html',
+                                'email_type': EmailTypes.INVITE.value,
+                                'org_id': None,
+                                'email_data': {
+                                    'email': item['email'],
+                                    'first_name': item['first_name'],
+                                    'phone':str(item['phone']),
+                                    'pin':random_pin
+                                }
+                            }
+                        send_mail_q.enqueue(email_worker.EmailWorker.send,
+                                            data, job_timeout=config_data['RQ_JOB_TIMEOUT'])
+                    db.session.commit()
+                    
+                #for .xlsx file
+                if file_split[-1]=="xlsx" and file:
+
+                    filepath = os.path.join(app.config['UPLOAD_FOLDER'],file_name)
+                    file.save(filepath)
+                    df = pd.read_excel(filepath)
+                    data = df.to_dict(orient='records')
+                    for item in data:
+                        random_pin = str(generate_pin())
+                        user = User(
+                            first_name=item['first_name'],
+                            last_name=item['last_name'],
+                            primary_email=item['email'],
+                            primary_phone=str(item['phone']),
+                            pin=generate_password_hash(random_pin,method="sha256"),
+                            uuid=str(uuid.uuid4())
+                            )
+                        db.session.add(user)
+                        data = {
+                                'email_to': item['email'],
+                                'subject': EmailSubject.WELCOME_TO_PROJECT.value,
+                                'template': 'emails/welcome.html',
+                                'email_type': EmailTypes.INVITE.value,
+                                'org_id': None,
+                                'email_data': {
+                                    'email': item['email'],
+                                    'first_name': item['first_name'],
+                                    'phone':str(item['phone']),
+                                    'pin':random_pin
+                                }
+                            }
+                        send_mail_q.enqueue(email_worker.EmailWorker.send,
+                                            data, job_timeout=config_data['RQ_JOB_TIMEOUT'])
+                        
+                    db.session.commit()
+
+            except Exception as e:
+                return send_json_response(http_status= HttpStatusCode.BAD_REQUEST.value,response_status= False,
+                                            message_key=ResponseMessageKeys.FAILED.value,data = None ,error = "Something went wrong in file data.")
+ 
+            else:
+                return send_json_response(http_status= HttpStatusCode.OK.value,response_status= True,
+                                                message_key=ResponseMessageKeys.USER_CREATED.value,
+                                                data = None ,error = None)
+        else:
+            return send_json_response(http_status= HttpStatusCode.BAD_REQUEST.value,response_status= False,
+                                            message_key=ResponseMessageKeys.FILE_NOT_FOUND.value,data = None ,error = None)
+                    
