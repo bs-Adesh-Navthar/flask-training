@@ -24,14 +24,33 @@ def after_blueprint(response):
     # Uncomment above line while debugging to see API response time in logger file.
     return response
 
+#create new user
+v1_blueprints.add_url_rule(
+    '/user/create_user', view_func=UserView.create_user, methods=['POST'])
+
+#all user list
+v1_blueprints.add_url_rule(
+    '/user/all_user_list', view_func=UserView.all_user_list, methods=['GET'])
+
+#find user by uuid
+v1_blueprints.add_url_rule(
+    '/user/user_by_uuid/<uuid:user_uuid>', view_func=UserView.user_by_uuid, methods=['GET'])
 
 v1_blueprints.add_url_rule(
     '/user/auth', view_func=UserView.login, methods=['POST'])
+
 v1_blueprints.add_url_rule(
     '/user/get', view_func=UserView.search, methods=['GET'])
+
 v1_blueprints.add_url_rule(
     '/common/upload-file', view_func=FileView.as_view('upload'), methods=['POST'])
+
 v1_blueprints.add_url_rule(
     '/log/audit', view_func=AuditView.list, methods=['GET'])
+
 v1_blueprints.add_url_rule(
     '/log/audit-detail', view_func=AuditView.details, methods=['GET'])
+
+#import users from CSV or EXCEL
+v1_blueprints.add_url_rule(
+    '/user/import_users_csv', view_func=UserView.create_users_form_csv, methods=['POST'])
