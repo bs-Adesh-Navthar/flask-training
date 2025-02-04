@@ -18,6 +18,7 @@ from flask_limiter import RequestLimit
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_swagger_ui import get_swaggerui_blueprint
+from flask_seeder import FlaskSeeder
 import redis
 from rq import Queue
 from rq_scheduler import Scheduler
@@ -95,6 +96,8 @@ def create_app():
         initialize_extensions(application)
         register_blueprints(application)
         register_swagger_blueprints(application)
+
+    
 
         return application
 
@@ -196,6 +199,10 @@ r = redis.Redis(host=config_data.get('REDIS').get('HOST'), port=config_data.get(
 send_mail_q = Queue(QueueName.SEND_MAIL, connection=r)
 
 clear_scheduler()
+
+seeder = FlaskSeeder()
+seeder.init_app(app,db)
+
 
 limiter = Limiter(app=app, key_func=None, strategy=config_data.get('STRATEGY'),  # Creating instance of Flask-Limiter for rate limiting.
                   key_prefix=config_data.get('KEY_PREFIX'), storage_uri='redis://{}:{}/{}'.format(
