@@ -378,4 +378,50 @@ class UserView(View):
         else:
             return send_json_response(http_status= HttpStatusCode.BAD_REQUEST.value,response_status= False,
                                             message_key=ResponseMessageKeys.FILE_NOT_FOUND.value,data = None ,error = None)
-                    
+
+    @token_required
+    @is_super_admin
+    #export all users to CSV file
+    def export_users(current_user=None):
+        users = User.query.all()
+        try:
+            users_list=[]
+            for user in users:
+                users_list.append({
+                                    'id': user.id,
+                                    'first_name': user.first_name,
+                                    'last_name': user.last_name,
+                                    'primary_email': user.primary_email,
+                                    'primary_phone': user.primary_phone,
+                                    'country_code': user.country_code,
+                                    'last_login_at': user.last_login_at,
+                                    'address' : user.address,
+                                    'zip_code' : user.zip_code,
+                                    'deactivated_at' : user.deactivated_at,
+                                    'deleted_at': user.deleted_at,
+                                    'created_by' : user.created_by,
+                                    'updated_by' : user.updated_by,
+                                    'created_at' : user.created_at,
+                                    'updated_at' : user.updated_at,
+                                    'uuid' : user.uuid
+                                })
+                
+            df = pd.DataFrame(users_list)        
+            current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+            directory = os.path.join(app.config['UPLOAD_FOLDER'])
+
+            file_name =f"user_list_{current_time}.csv"
+
+            filepath = os.path.join(directory,file_name)
+             
+            df.to_csv(filepath, index=False)
+
+        except:
+            return send_json_response(http_status= HttpStatusCode.BAD_REQUEST.value,response_status= False,
+                                            message_key=ResponseMessageKeys.FAILED.value,
+                                            data = None ,error = "Something went wrong in file data.")
+        else:
+            return send_json_response(http_status= HttpStatusCode.OK.value,response_status= True,
+                                                message_key=ResponseMessageKeys.USERS_EXPORTED.value,
+                                                data = file_name ,error = None)

@@ -65,6 +65,7 @@ class ResponseMessageKeys(enum.Enum):
     USER_NOT_EXIST = 'Entered Email ID is not registered with us.'
     EMAIL_DETAILS_NOT_FOUND = 'Entered Email ID is not registered with us.'
     USER_CREATED = 'User created successfully'
+    USERS_EXPORTED = 'File created successfully.'
     USER_ALREADY_EXISTS = 'Email already registered.'
     ALL_USERS = "Fetched all users."
     FILE_NOT_FOUND = "Please upload valid file format."
