@@ -68,6 +68,7 @@ class ResponseMessageKeys(enum.Enum):
     USER_ALREADY_EXISTS = 'Email already registered.'
     ALL_USERS = "Fetched all users."
     FILE_NOT_FOUND = "Please upload valid file format."
+    DETAILS_UPDATED = 'User details updated successfully.'
 
 SupportedFileTypes = {  # Contains all the supported file types.
     'jpeg': 'image/jpeg',

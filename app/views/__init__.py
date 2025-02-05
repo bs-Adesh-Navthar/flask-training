@@ -54,3 +54,7 @@ v1_blueprints.add_url_rule(
 #import users from CSV or EXCEL
 v1_blueprints.add_url_rule(
     '/user/import_users_csv', view_func=UserView.create_users_form_csv, methods=['POST'])
+
+#update user details
+v1_blueprints.add_url_rule(
+    '/user/update_user', view_func=UserView.update_user, methods=['POST'])
