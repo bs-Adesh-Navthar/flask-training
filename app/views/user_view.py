@@ -443,3 +443,68 @@ class UserView(View):
             return send_json_response (http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
                                             message_key=ResponseMessageKeys.FAILED.value, data=None,
                                             error="Email already present.")
+        
+
+    #update user (admin side)
+    @is_super_admin
+    @token_required
+    def update_user_by_admin(current_user=None,user_uuid=None):
+        user_uuid=str(user_uuid)
+        if user_uuid:
+            data = request.get_json(force=True)
+            field_types = {'first_name':str,'email': str, 'phone': str}
+            required_fields = ['first_name','email', 'phone']
+
+            post_data = field_type_validator(
+                request_data=data, field_types=field_types)
+            if post_data['is_error']:
+                return send_json_response(http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                        message_key=ResponseMessageKeys.ENTER_CORRECT_INPUT.value,
+                                        data=None, error=post_data['data'])
+            is_valid = required_validator(
+                request_data=data, required_fields=required_fields)
+            if is_valid['is_error']:
+                return send_json_response(http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                        message_key=ResponseMessageKeys.ENTER_CORRECT_INPUT.value, data=None,
+                                        error=is_valid['data'])
+            
+            first_name = data.get('first_name')
+            last_name = data.get('last_name',"")
+            email = data.get('email')
+            phone = data.get('phone')
+            country_code = data.get('country_code',"")
+            address = data.get('address',"")
+            zip_code = data.get('zip_code',"")
+
+
+            existing_user = db.session.query(User).filter(
+                        User.primary_email == email,
+                        User.uuid != user_uuid).first()
+            
+            if not existing_user:
+                try:
+                    db.session.query(User).filter_by(uuid=user_uuid).update({
+                                                                'first_name': first_name,
+                                                                'last_name': last_name,
+                                                                'primary_email': email,
+                                                                'primary_phone': phone,
+                                                                'country_code': country_code,
+                                                                'address': address,
+                                                                'zip_code': zip_code
+                                                                })
+                    db.session.commit()
+                except:
+                    return send_json_response (http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
+                                                message_key=ResponseMessageKeys.FAILED.value, data=None,
+                                                error="Error while updating details.")
+
+
+
+                else:
+                    return send_json_response (http_status=HttpStatusCode.OK.value, response_status=True,
+                                                message_key=ResponseMessageKeys.DETAILS_UPDATED.value, data=data,
+                                                error=None)
+            else:
+                return send_json_response (http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                        message_key=ResponseMessageKeys.FAILED.value, data=None,
+                                        error="Email already present.")

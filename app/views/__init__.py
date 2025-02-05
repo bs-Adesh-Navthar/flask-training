@@ -58,3 +58,7 @@ v1_blueprints.add_url_rule(
 #update user details
 v1_blueprints.add_url_rule(
     '/user/update_user', view_func=UserView.update_user, methods=['POST'])
+
+#update user by admin
+v1_blueprints.add_url_rule(
+    '/user/admin_update_user/<user_uuid>', view_func=UserView.update_user_by_admin, methods=['POST'])
