@@ -63,13 +63,14 @@ class ResponseMessageKeys(enum.Enum):
     FAILED = 'Something went wrong.'
     INVALID_PASSWORD = 'Invalid password.'
     USER_NOT_EXIST = 'Entered Email ID is not registered with us.'
-    EMAIL_DETAILS_NOT_FOUND = 'Entered Email ID is not registered with us.'
     USER_CREATED = 'User created successfully'
     USER_ALREADY_EXISTS = 'Email already registered.'
     ALL_USERS = "Fetched all users."
     FILE_NOT_FOUND = "Please upload valid file format."
     DETAILS_UPDATED = 'User details updated successfully.'
-
+    USER_DELETED = 'User deleted successfully.'
+    INVALID_DATA = 'Invalid Data'
+    
 SupportedFileTypes = {  # Contains all the supported file types.
     'jpeg': 'image/jpeg',
     'png': 'image/png',

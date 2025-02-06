@@ -31,6 +31,7 @@ import uuid
 import pandas as pd
 import os
 from app.__init__ import app
+from datetime import timezone
 
 class UserView(View):
     """Contains all user related functions"""
@@ -107,7 +108,7 @@ class UserView(View):
                                   error=None)
 
     @staticmethod
-    @api_time_logger
+    # @api_time_logger
     # ideally it can be 1/30 , it is currently 3/1 so that tests do not fail
     @limiter.limit(limit_value='3/1 second', key_func=lambda: request.get_json(force=True).get('email'))
     def login():
@@ -205,42 +206,41 @@ class UserView(View):
                            data=data, 
                            error="AttributeError occurred while processing the request")
 
-        else:
-            #Add new user
-            
-            add_user_details = User(first_name=first_name,
-                                    primary_email=primary_email,
-                                    primary_phone=primary_phone,
-                                    pin=hashed_pin,
-                                    uuid = str(uuid.uuid4()))
-            db.session.add(add_user_details)
-            db.session.commit()
+        add_user_details = User(first_name=first_name,
+                                primary_email=primary_email,
+                                primary_phone=primary_phone,
+                                pin=hashed_pin)
+                                
+        db.session.add(add_user_details)
+        db.session.commit()
 
-            data = {
-                'email_to': primary_email,
-                'subject': EmailSubject.WELCOME_TO_PROJECT.value,
-                'template': 'emails/welcome.html',
-                'email_type': EmailTypes.INVITE.value,
-                'org_id': None,
-                'email_data': {
-                    'email': primary_email,
-                    'first_name': first_name,
-                    'phone':primary_phone,
-                    'pin':pin
-                }
+        data = {
+            'email_to': primary_email,
+            'subject': EmailSubject.WELCOME_TO_PROJECT.value,
+            'template': 'emails/welcome.html',
+            'email_type': EmailTypes.INVITE.value,
+            'org_id': None,
+            'email_data': {
+                'email': primary_email,
+                'first_name': first_name,
+                'phone':primary_phone,
+                'pin':pin
             }
-            send_mail_q.enqueue(email_worker.EmailWorker.send,
-                                data, job_timeout=config_data['RQ_JOB_TIMEOUT'])
-    
-            return send_json_response(http_status=HttpStatusCode.OK.value, response_status=True,
-                                        message_key=ResponseMessageKeys.USER_CREATED.value.format(first_name),
-                                        data=data, error=None)
+        }
+        send_mail_q.enqueue(email_worker.EmailWorker.send,
+                            data, job_timeout=config_data['RQ_JOB_TIMEOUT'])
+
+        return send_json_response(http_status=HttpStatusCode.OK.value, response_status=True,
+                                    message_key=ResponseMessageKeys.USER_CREATED.value.format(first_name),
+                                    data=data, error=None)
 
     # all user list 
     @token_required
     @is_super_admin
     def all_user_list(current_user=None):
+
         user_list= User.get_all_user_detail()
+        
         return send_json_response(http_status=HttpStatusCode.OK.value,response_status=True,
                                 message_key=ResponseMessageKeys.ALL_USERS.value,data=user_list,error=None)
     
@@ -249,12 +249,20 @@ class UserView(View):
     @is_super_admin
     def user_by_uuid(current_user=None, user_uuid=None):
         user_uuid=str(user_uuid)
-        if user_uuid:
-            try:
-                user = User.query.filter_by(uuid=user_uuid).first()
+        if user_uuid is None:
+            return send_json_response(http_status = HttpStatusCode.BAD_REQUEST.value,
+                    response_status = False,
+                    data =None,error = "Invalid UUID format")
 
-                if user:
-                    user_data = {
+        try:
+            user = User.get_by_uuid(user_uuid)
+
+            if not user:
+                return send_json_response(
+                    http_status = HttpStatusCode.NOT_FOUND.value,
+                    response_status = False,message_key = ResponseMessageKeys.USER_NOT_EXIST.value,
+                    data = None,error = "User not found")
+            user_data = {
                         "id": user.id,
                         "first_name": user.first_name,
                         "last_name": user.last_name,
@@ -262,25 +270,15 @@ class UserView(View):
                         "email": user.primary_email,
                         "phone":user.primary_phone,
                         "uuid": user.uuid
-                    }
-                    return send_json_response(http_status= HttpStatusCode.OK.value,response_status= True,
-                                            message_key=ResponseMessageKeys.SUCCESS.value,
-                                            data = user_data,error = None)
-                else:
-                    return send_json_response(
-                        http_status = HttpStatusCode.NOT_FOUND.value,
-                        response_status = False,message_key = ResponseMessageKeys.USER_NOT_EXIST.value,
-                        data = None,error = "User not found")
-
-            except ValueError:
-                return send_json_response(http_status = HttpStatusCode.BAD_REQUEST.value,
-                    response_status = False,message_key = ResponseMessageKeys.USER_NOT_EXIST.value,
-                    data = None,error = "Invalid UUID format")
-
-        else:
+                        }
+            return send_json_response(http_status= HttpStatusCode.OK.value,response_status= True,
+                                    message_key=ResponseMessageKeys.SUCCESS.value,
+                                    data = user_data,error = None)
+                
+        except ValueError:
             return send_json_response(http_status = HttpStatusCode.BAD_REQUEST.value,
-                    response_status = False,
-                    data =None,error = "Invalid UUID format")
+                response_status = False,message_key = ResponseMessageKeys.USER_NOT_EXIST.value,
+                data = None,error = "Invalid UUID format")
         
 
     # insert bulk users from .csv file
@@ -308,8 +306,7 @@ class UserView(View):
                             last_name=item['last_name'],
                             primary_email=item['email'],
                             primary_phone=str(item['phone']),
-                            pin=generate_password_hash(random_pin,method="sha256"),
-                            uuid=str(uuid.uuid4())
+                            pin=generate_password_hash(random_pin,method="sha256")
                             )       
                         
                         db.session.add(user)
@@ -345,8 +342,7 @@ class UserView(View):
                             last_name=item['last_name'],
                             primary_email=item['email'],
                             primary_phone=str(item['phone']),
-                            pin=generate_password_hash(random_pin,method="sha256"),
-                            uuid=str(uuid.uuid4())
+                            pin=generate_password_hash(random_pin,method="sha256")
                             )
                         db.session.add(user)
                         data = {
@@ -379,9 +375,9 @@ class UserView(View):
             return send_json_response(http_status= HttpStatusCode.BAD_REQUEST.value,response_status= False,
                                             message_key=ResponseMessageKeys.FILE_NOT_FOUND.value,data = None ,error = None)
 
-#update user details
+    #update user details
     @token_required
-    def update_user(current_user=None):
+    def update_user(user_uuid,current_user=None):
         data = request.get_json(force=True)
         field_types = {'first_name':str,'email': str, 'phone': str}
         required_fields = ['first_name','email', 'phone']
@@ -408,103 +404,68 @@ class UserView(View):
         zip_code = data.get('zip_code',"")
 
         
-        existing_user = db.session.query(User).filter(
-                            User.primary_email == email,
-                            User.id != current_user.id).first()
-
-
-        if not existing_user:
-
-            try:
-
-                db.session.query(User).filter_by(id=current_user.id).update({
-                                                            'first_name': first_name,
-                                                            'last_name': last_name,
-                                                            'primary_email': email,
-                                                            'primary_phone': phone,
-                                                            'country_code': country_code,
-                                                            'address': address,
-                                                            'zip_code': zip_code
-                                                            })
-                db.session.commit()
-            except:
-                return send_json_response (http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
-                                            message_key=ResponseMessageKeys.FAILED.value, data=None,
-                                            error="Error while updating details.")
-
-
-
-            else:
-                return send_json_response (http_status=HttpStatusCode.OK.value, response_status=True,
-                                            message_key=ResponseMessageKeys.DETAILS_UPDATED.value, data=data,
-                                            error=None)
-            
-        else:
+        existing_user = db.session.query(User).filter(User.uuid == user_uuid).first()
+    
+        if existing_user:
             return send_json_response (http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
                                             message_key=ResponseMessageKeys.FAILED.value, data=None,
                                             error="Email already present.")
-        
 
-    #update user (admin side)
-    @is_super_admin
-    @token_required
-    def update_user_by_admin(current_user=None,user_uuid=None):
-        user_uuid=str(user_uuid)
-        if user_uuid:
-            data = request.get_json(force=True)
-            field_types = {'first_name':str,'email': str, 'phone': str}
-            required_fields = ['first_name','email', 'phone']
+        try:
 
-            post_data = field_type_validator(
-                request_data=data, field_types=field_types)
-            if post_data['is_error']:
-                return send_json_response(http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
-                                        message_key=ResponseMessageKeys.ENTER_CORRECT_INPUT.value,
-                                        data=None, error=post_data['data'])
-            is_valid = required_validator(
-                request_data=data, required_fields=required_fields)
-            if is_valid['is_error']:
-                return send_json_response(http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
-                                        message_key=ResponseMessageKeys.ENTER_CORRECT_INPUT.value, data=None,
-                                        error=is_valid['data'])
-            
-            first_name = data.get('first_name')
-            last_name = data.get('last_name',"")
-            email = data.get('email')
-            phone = data.get('phone')
-            country_code = data.get('country_code',"")
-            address = data.get('address',"")
-            zip_code = data.get('zip_code',"")
-
-
-            existing_user = db.session.query(User).filter(
-                        User.primary_email == email,
-                        User.uuid != user_uuid).first()
-            
-            if not existing_user:
-                try:
-                    db.session.query(User).filter_by(uuid=user_uuid).update({
-                                                                'first_name': first_name,
-                                                                'last_name': last_name,
-                                                                'primary_email': email,
-                                                                'primary_phone': phone,
-                                                                'country_code': country_code,
-                                                                'address': address,
-                                                                'zip_code': zip_code
-                                                                })
-                    db.session.commit()
-                except:
-                    return send_json_response (http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
-                                                message_key=ResponseMessageKeys.FAILED.value, data=None,
-                                                error="Error while updating details.")
-
-
-
-                else:
-                    return send_json_response (http_status=HttpStatusCode.OK.value, response_status=True,
-                                                message_key=ResponseMessageKeys.DETAILS_UPDATED.value, data=data,
-                                                error=None)
-            else:
-                return send_json_response (http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+            db.session.query(User).filter_by(id=current_user.id).update({
+                                                        'first_name': first_name,
+                                                        'last_name': last_name,
+                                                        'primary_email': email,
+                                                        'primary_phone': phone,
+                                                        'country_code': country_code,
+                                                        'address': address,
+                                                        'zip_code': zip_code
+                                                        })
+            db.session.commit()
+        except:
+            return send_json_response (http_status=HttpStatusCode.UNAUTHORIZED.value, response_status=False,
                                         message_key=ResponseMessageKeys.FAILED.value, data=None,
-                                        error="Email already present.")
+                                        error="Error while updating details.")
+
+
+
+        else:
+            return send_json_response (http_status=HttpStatusCode.OK.value, response_status=True,
+                                        message_key=ResponseMessageKeys.DETAILS_UPDATED.value, data=data,
+                                        error=None)
+            
+
+    #delete user (soft delete)
+    # @api_time_logger
+    @staticmethod
+    @token_required
+    def delete_user(current_user=None,user_uuid=None):
+        
+        user = User.get_by_uuid(user_uuid)
+
+        if not user:
+            return send_json_response (http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                        message_key=ResponseMessageKeys.INVALID_DATA.value, data=None,
+                                        error=None)
+        if not current_user:
+            return send_json_response (http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                        message_key=ResponseMessageKeys.FAILED.value, data=None,
+                                        error=None)
+        if not (current_user.id == user.id or current_user.is_admin==True):
+            return send_json_response (http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                        message_key=ResponseMessageKeys.FAILED.value, data=None,
+                                        error=None)
+        try:
+            User.flag_delete_by_uuid(str(user_uuid))
+
+        except:
+            return send_json_response (http_status=HttpStatusCode.BAD_REQUEST.value, response_status=False,
+                                    message_key=ResponseMessageKeys.FAILED.value, data=None,
+                                    error=None)
+        else:
+            return send_json_response (http_status=HttpStatusCode.OK.value, response_status=True,
+                                            message_key=ResponseMessageKeys.USER_DELETED.value, data=None,
+                                            error=None)
+            
+            

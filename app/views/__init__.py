@@ -1,4 +1,5 @@
 """Contain all the urls of apis"""
+from app import logger
 from app.views.common_view import AuditView
 from app.views.common_view import FileView
 from app.views.user_view import UserView
@@ -20,7 +21,7 @@ def before_blueprint():
 def after_blueprint(response):
     """This method executed in the end of the request."""
     response.headers['Time-Log'] = g.time_log
-    # logger.info(f'{response.status_code}: {g.request_path}: {g.time_log}')
+    logger.info(f'{response.status_code}: {g.request_path}: {g.time_log}')
     # Uncomment above line while debugging to see API response time in logger file.
     return response
 
@@ -32,9 +33,9 @@ v1_blueprints.add_url_rule(
 v1_blueprints.add_url_rule(
     '/user/all_user_list', view_func=UserView.all_user_list, methods=['GET'])
 
-#find user by uuid
+# #find user by uuid
 v1_blueprints.add_url_rule(
-    '/user/user_by_uuid/<uuid:user_uuid>', view_func=UserView.user_by_uuid, methods=['GET'])
+    '/user/get_user_by_uuid/<uuid:user_uuid>', view_func=UserView.user_by_uuid, methods=['GET'])
 
 v1_blueprints.add_url_rule(
     '/user/auth', view_func=UserView.login, methods=['POST'])
@@ -59,6 +60,6 @@ v1_blueprints.add_url_rule(
 v1_blueprints.add_url_rule(
     '/user/update_user', view_func=UserView.update_user, methods=['POST'])
 
-#update user by admin
+#delete user
 v1_blueprints.add_url_rule(
-    '/user/admin_update_user/<user_uuid>', view_func=UserView.update_user_by_admin, methods=['POST'])
+    '/user/delete_user/<user_uuid>', view_func=UserView.delete_user, methods=['POST'])
