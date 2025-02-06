@@ -9,12 +9,13 @@ from dateutil import tz
 from sqlalchemy import asc
 from sqlalchemy import desc
 from sqlalchemy.orm import Query
-
+import uuid
+from datetime import timezone
 
 class Base(db.Model, AuditableEvent):
     """Base model for all other models that contains some basic methods that can be extended by other modals."""
     __abstract__ = True
-    uuid = db.Column(db.String, unique=True)
+    uuid = db.Column(db.String, unique=True, default = lambda:(str(uuid.uuid4())))
     created_at = db.Column(db.DateTime(timezone=True),
                            default=datetime.now(tz=tz.tzlocal()))
     updated_at = db.Column(db.DateTime(timezone=True),
@@ -39,6 +40,13 @@ class Base(db.Model, AuditableEvent):
     def delete_by_uuid(cls, uuid: str) -> None:
         """Delete record by uuid."""
         db.session.query(cls).filter(cls.uuid == uuid).delete()
+        db.session.commit()
+
+    @classmethod
+    def flag_delete_by_uuid(cls, uuid: str) -> None:
+        """Flag record deleted_at by uuid."""
+        query = db.session.query(cls).filter(cls.uuid == uuid)
+        query.update({cls.deleted_at : datetime.now(timezone.utc)})
         db.session.commit()
 
     @classmethod
